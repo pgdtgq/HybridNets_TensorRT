@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 project(HybridNets_TensorRT)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 ############################ set debug/release version #######################
@@ -58,14 +58,16 @@ include_directories(.
         trt/plugin/CuteSamplePlugin
         trt/plugin/CuteSampleDynamicExtPlugin
         HybridNets/
-)
+        util/
+        )
 
 ############################ Specify src code directory #################################
-#file(GLOB_RECURSE TRT
-#        trt/*.cpp
-#        trt/plugin/*.cpp
-#        trt/plugin/CuteSampleDynamicExtPlugin/*.cpp
-#        trt/plugin/CuteSamplePlugin/*.cpp)
+file(GLOB_RECURSE TRT
+        trt/*.cpp
+        trt/plugin/*.cpp
+        trt/plugin/CuteSampleDynamicExtPlugin/*.cpp
+        trt/plugin/CuteSamplePlugin/*.cpp
+        )
 
 file(GLOB_RECURSE HYBRIDNETS
         HybridNets/*.cpp)

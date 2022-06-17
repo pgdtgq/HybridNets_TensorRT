@@ -4,6 +4,8 @@
 #include <cudnn.h>
 #include <string>
 #include <vector>
+
+#include "util/Util.hpp"
 #include "NvInfer.h"
 #include "utils.h"
 

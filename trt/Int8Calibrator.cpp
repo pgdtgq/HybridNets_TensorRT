@@ -1,5 +1,5 @@
 #include "Int8Calibrator.h"
-#include "spdlog/spdlog.h"
+#include "logger/LogDefine.h"
 #include "cnpy.h"
 #include "utils.h"
 
@@ -42,7 +42,7 @@ TrtInt8Calibrator::TrtInt8Calibrator(const std::string& calibratorType,
     const int batchSize, const std::string& dataPath,
     const std::string& calibrateCachePath)
 {
-    spdlog::info("init calibrator...");
+    LOG_INFO("init calibrator...");
     mBatchSize = batchSize;
     mCalibrateCachePath = calibrateCachePath;
     mCalibratorType = calibratorType;
@@ -77,14 +77,14 @@ TrtInt8Calibrator::~TrtInt8Calibrator()
 }
 
 int TrtInt8Calibrator::getBatchSize() const noexcept{
-    spdlog::info("get batch size {}", mBatchSize);
+    LOG_INFO(string_format("get batch size {}", mBatchSize));
     return mBatchSize;
 }
 
 
 bool TrtInt8Calibrator::getBatch(void* bindings[], const char* names[], int nbBindings) noexcept
 {
-    spdlog::info("load catlibrate data {}/{}...", mCurBatchIdx, mCount);
+    LOG_INFO(string_format("load catlibrate data {}/{}...", mCurBatchIdx, mCount));
     if (mCurBatchIdx + mBatchSize > mCount) {
         return false;
     }
@@ -110,7 +110,7 @@ bool TrtInt8Calibrator::getBatch(void* bindings[], const char* names[], int nbBi
 
 const void* TrtInt8Calibrator::readCalibrationCache(size_t& length) noexcept
 {
-    spdlog::info("read calibration cache");
+    LOG_INFO("read calibration cache");
     mCalibrationCache.clear();
     std::ifstream input(mCalibrateCachePath, std::ios::binary);
     input >> std::noskipws;
@@ -126,14 +126,14 @@ const void* TrtInt8Calibrator::readCalibrationCache(size_t& length) noexcept
 
 void TrtInt8Calibrator::writeCalibrationCache(const void* cache, size_t length) noexcept
 {
-    spdlog::info("write calibration cache");
+    LOG_INFO("write calibration cache");
     std::ofstream output(mCalibrateCachePath, std::ios::binary);
     output.write(reinterpret_cast<const char*>(cache), length);
 }
 
 nvinfer1::CalibrationAlgoType TrtInt8Calibrator::getAlgorithm() noexcept
 {
-    spdlog::info("get calibrator algorithm type");
+    LOG_INFO("get calibrator algorithm type");
     if(mCalibratorType == "EntropyCalibratorV2") {
         return nvinfer1::CalibrationAlgoType::kENTROPY_CALIBRATION_2;
     } else if(mCalibratorType == "EntropyCalibrator") {

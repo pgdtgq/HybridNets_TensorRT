@@ -1,6 +1,6 @@
 #include "Trt.h"
 #include "utils.h"
-#include "spdlog/spdlog.h"
+#include "logger/LogDefine.h"
 #include "Int8Calibrator.h"
 
 #include <string>
@@ -9,6 +9,7 @@
 #include <cassert>
 #include <fstream>
 
+#include "util/Util.hpp"
 #include "NvInfer.h"
 #include "NvInferRuntime.h"
 #include "NvOnnxParser.h"
@@ -16,7 +17,7 @@
 #include "NvInferVersion.h"
 
 void SetDevice(int device) {
-    spdlog::info("set device {}", device);
+    LOG_INFO(string_format("set device {}", device));
     CUDA_CHECK(cudaSetDevice(device));
 }
 
@@ -26,22 +27,22 @@ int GetDevice() {
     if(device != -1) {
         return device;
     } else {
-        spdlog::error("Get Device Error");
+        LOG_ERROR(string_format("Get Device Error"));
         return -1;
     }
 }
 
 void SaveEngine(const std::string& fileName, TrtUniquePtr<nvinfer1::IHostMemory>& plan) {
     if(fileName == "") {
-        spdlog::warn("empty engine file name, skip save");
+        LOG_WARNING("empty engine file name, skip save");
         return;
     }
     assert(plan != nullptr);
-    spdlog::info("save engine to {}...",fileName);
+    LOG_INFO(string_format("save engine to {}...",fileName));
     std::ofstream file;
     file.open(fileName,std::ios::binary | std::ios::out);
     if(!file.is_open()) {
-        spdlog::error("read create engine file {} failed",fileName);
+        LOG_ERROR(string_format("read create engine file {} failed",fileName));
         return;
     }
     file.write((const char*)plan->data(), plan->size());
@@ -98,19 +99,19 @@ void TrtLogger::log(Severity severity, const char* msg) noexcept {
         switch (severity)
         {
         case Severity::kINTERNAL_ERROR:
-            spdlog::critical("[F] [TRT] {}", msg);
+            LOG_FATAL(string_format("[F] [TRT] {}", msg));
             break;
         case Severity::kERROR:
-            spdlog::error("[E] [TRT] {}", msg);
+            LOG_ERROR(string_format("[E] [TRT] {}", msg));
             break;
         case Severity::kWARNING:
-            spdlog::warn("[W] [TRT] {}", msg);
+            LOG_WARNING(string_format("[W] [TRT] {}", msg));
             break;
         case Severity::kINFO:
-            spdlog::info("[I] [TRT] {}", msg);
+            LOG_INFO(string_format("[I] [TRT] {}", msg));
             break;
         case Severity::kVERBOSE:
-            spdlog::info("[V] [TRT] {}", msg);
+            LOG_INFO(string_format("[V] [TRT] {}", msg));
             break;
         default:
             assert(false && "invalid log level");
@@ -128,7 +129,7 @@ Trt::Trt() {
 #if NV_TENSORRT_MAJOR < 7
     assert(false && "tiny-tensorrt only support TRT version greater than 7");
 #endif
-    spdlog::info("create Trt instance");
+    LOG_INFO("create Trt instance");
     mLogger.reset(new TrtLogger());
     initLibNvInferPlugins(mLogger.get(), "");
     mBuilder.reset(nvinfer1::createInferBuilder(*mLogger));
@@ -141,7 +142,7 @@ Trt::Trt() {
 }
 
 Trt::~Trt() {
-    spdlog::info("destroy Trt instance");
+    LOG_INFO("destroy Trt instance");
     mProfile = nullptr;
     for(size_t i=0;i<mBinding.size();i++) {
         safeCudaFree(mBinding[i]);
@@ -150,18 +151,18 @@ Trt::~Trt() {
 
 void Trt::EnableFP16() {
     assert(mBuilder != nullptr && mConfig !=nullptr && "Please set config before build engine");
-    spdlog::info("enable FP16");
+    LOG_INFO("enable FP16");
     if (!mBuilder->platformHasFastFp16()) {
-        spdlog::warn("the platform doesn't have native fp16 support");
+        LOG_WARNING("the platform doesn't have native fp16 support");
     }
     mConfig->setFlag(nvinfer1::BuilderFlag::kFP16);
 }
 
 void Trt::EnableINT8() {
     assert(mBuilder != nullptr && mConfig !=nullptr && "Please set config before build engine");
-    spdlog::info("enable int8, call SetInt8Calibrator to set int8 calibrator");
+    LOG_INFO("enable int8, call SetInt8Calibrator to set int8 calibrator");
     if (!mBuilder->platformHasFastInt8()) {
-        spdlog::warn("the platform doesn't have native int8 support");
+        LOG_WARNING("the platform doesn't have native int8 support");
     }
     mConfig->setFlag(nvinfer1::BuilderFlag::kINT8);
 }
@@ -169,7 +170,7 @@ void Trt::EnableINT8() {
 void Trt::SetInt8Calibrator(const std::string& calibratorType, const int batchSize,
                             const std::string& dataPath, const std::string& calibrateCachePath) {
     assert(mBuilder != nullptr && mConfig !=nullptr && "Please set config before build engine");
-    spdlog::info("set int8 inference mode");
+    LOG_INFO("set int8 inference mode");
     nvinfer1::IInt8Calibrator* calibrator = GetInt8Calibrator(
         calibratorType, batchSize, dataPath, calibrateCachePath);
     mConfig->setInt8Calibrator(calibrator);
@@ -178,12 +179,12 @@ void Trt::SetInt8Calibrator(const std::string& calibratorType, const int batchSi
 void Trt::SetWorkpaceSize(size_t workspaceSize) {
     assert(mBuilder != nullptr && mConfig !=nullptr && "Please set config before build engine");
     mConfig->setMaxWorkspaceSize(workspaceSize);
-    spdlog::info("set max workspace size: {}", mConfig->getMaxWorkspaceSize());
+    LOG_INFO(string_format("set max workspace size: {}", mConfig->getMaxWorkspaceSize()));
 }
 
 void Trt::SetDLACore(int dlaCore) {
     assert(mBuilder != nullptr && mConfig !=nullptr && "Please set config before build engine");
-    spdlog::info("set dla core {}", dlaCore);
+    LOG_INFO(string_format("set dla core {}", dlaCore));
     if(dlaCore >= 0) {
         mConfig->setDefaultDeviceType(nvinfer1::DeviceType::kDLA);
         mConfig->setDLACore(dlaCore);
@@ -193,12 +194,12 @@ void Trt::SetDLACore(int dlaCore) {
 
 void Trt::SetCustomOutput(const std::vector<std::string>& customOutputs) {
     assert(mBuilder != nullptr && mConfig !=nullptr && "Please set config before build engine");
-    spdlog::info("set custom output");
+    LOG_INFO("set custom output");
     mCustomOutputs = customOutputs;
 }
 
 void Trt::SetLogLevel(int severity) {
-    spdlog::info("set log level {}", severity);
+    LOG_INFO(string_format("set log level {}", severity));
     mLogger->setLogSeverity(static_cast<nvinfer1::ILogger::Severity>(severity));
 }
 
@@ -206,7 +207,7 @@ void Trt::AddDynamicShapeProfile(const std::string& inputName,
                                 const std::vector<int>& minDimVec,
                                 const std::vector<int>& optDimVec,
                                 const std::vector<int>& maxDimVec) {
-    spdlog::info("add mProfile for {}", inputName);
+    LOG_INFO(string_format("add mProfile for {}", inputName));
     nvinfer1::Dims minDim, optDim, maxDim;
     int nbDims = optDimVec.size();
     minDim.nbDims = nbDims;
@@ -226,7 +227,7 @@ void Trt::AddDynamicShapeProfile(const std::string& inputName,
 void Trt::BuildEngine(
         const std::string& onnxModel,
         const std::string& engineFile) {
-    spdlog::info("build onnx engine from {}...",onnxModel);
+    LOG_INFO(string_format("build onnx engine from {}...",onnxModel));
     TrtUniquePtr<nvinfer1::IRuntime> runtime{nvinfer1::createInferRuntime(*mLogger)};
     assert(runtime != nullptr && "create trt runtime failed");
     auto flag = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
@@ -238,12 +239,12 @@ void Trt::BuildEngine(
         static_cast<int>(Severity::kWARNING));
     assert(parse_success && "parse onnx file failed");
     if(mCustomOutputs.size() > 0) {
-        spdlog::info("unmark original output...");
+        LOG_INFO("unmark original output...");
         for(int i=0;i<network->getNbOutputs();i++) {
             nvinfer1::ITensor* origin_output = network->getOutput(i);
             network->unmarkOutput(*origin_output);
         }
-        spdlog::info("mark custom output...");
+        LOG_INFO("mark custom output...");
         for(int i=0;i<network->getNbLayers();i++) {
             nvinfer1::ILayer* custom_output = network->getLayer(i);
             for(int j=0;j<custom_output->getNbOutputs();j++) {
@@ -260,7 +261,7 @@ void Trt::BuildEngine(
         }
     }
     if(mConfig->getFlag(nvinfer1::BuilderFlag::kINT8) && mConfig->getInt8Calibrator() == nullptr) {
-        spdlog::warn("No calibrator found, using fake scale");
+        LOG_WARNING("No calibrator found, using fake scale");
         setTensorDynamicRange(*network, 2.0f, 4.0f);
     }
     if(mIsDynamicShape) {
@@ -286,7 +287,7 @@ void Trt::BuildEngine(
 bool Trt::DeserializeEngine(const std::string& engineFile, int dlaCore) {
     std::ifstream in(engineFile.c_str(), std::ifstream::binary);
     if(in.is_open()) {
-        spdlog::info("deserialize engine from {}",engineFile);
+        LOG_INFO(string_format("deserialize engine from {}",engineFile));
         auto const start_pos = in.tellg();
         in.ignore(std::numeric_limits<std::streamsize>::max());
         size_t bufCount = in.gcount();
@@ -332,7 +333,7 @@ void Trt::SetBindingDimensions(std::vector<int>& inputDims, int bindIndex) {
 void Trt::CopyFromHostToDevice(const std::vector<float>& input,
                                int bindIndex, const cudaStream_t& stream) {
 #ifdef DEBUG
-    spdlog::info("input size: {}, binding size: {}", input.size()*sizeof(float), mBindingSize[bindIndex]);
+    LOG_INFO(string_format("input size: {}, binding size: {}", input.size()*sizeof(float), mBindingSize[bindIndex]));
 #endif
     CUDA_CHECK(cudaMemcpyAsync(mBinding[bindIndex], input.data(),
         input.size()*sizeof(float), cudaMemcpyHostToDevice, stream));
@@ -341,7 +342,7 @@ void Trt::CopyFromHostToDevice(const std::vector<float>& input,
 void Trt::CopyFromDeviceToHost(std::vector<float>& output, int bindIndex,
                                const cudaStream_t& stream) {
 #ifdef DEBUG
-    spdlog::info("output size: {}, binding size: {}", output.size()*sizeof(float), mBindingSize[bindIndex]);
+    LOG_INFO(string_format("output size: {}, binding size: {}", output.size()*sizeof(float), mBindingSize[bindIndex]));
 #endif
     CUDA_CHECK(cudaMemcpyAsync(output.data(), mBinding[bindIndex],
         output.size()*sizeof(float), cudaMemcpyDeviceToHost, stream));
@@ -376,9 +377,9 @@ int Trt::GetNbOutputBindings() const {
 }
 
 void Trt::CreateDeviceBuffer() {
-    spdlog::info("malloc device memory");
+    LOG_INFO("malloc device memory");
     int nbBindings = mEngine->getNbBindings();
-    spdlog::info("nbBingdings: {}", nbBindings);
+    LOG_INFO(string_format("nbBingdings: {}", nbBindings));
     mBinding.resize(nbBindings);
     mBindingSize.resize(nbBindings);
     mBindingName.resize(nbBindings);
@@ -406,12 +407,12 @@ void Trt::CreateDeviceBuffer() {
         mBindingDims[i] = dims;
         mBindingDataType[i] = dtype;
         if(mEngine->bindingIsInput(i)) {
-            spdlog::info("input: ");
+            LOG_INFO("input: ");
         } else {
-            spdlog::info("output: ");
+            LOG_INFO("output: ");
         }
-        spdlog::info("binding bindIndex: {}, name: {}, size in byte: {}",i,name,totalSize);
-        spdlog::info("binding dims with {} dimemsion",dims.nbDims);
+        LOG_INFO(string_format("binding bindIndex: {}, name: {}, size in byte: {}",i,name,totalSize));
+        LOG_INFO(string_format("binding dims with {} dimemsion",dims.nbDims));
         for(int j=0;j<dims.nbDims;j++) {
             std::cout << dims.d[j] << " x ";
         }
