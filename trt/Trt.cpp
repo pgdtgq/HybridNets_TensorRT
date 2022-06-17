@@ -9,7 +9,6 @@
 #include <cassert>
 #include <fstream>
 
-#include "util/Util.hpp"
 #include "NvInfer.h"
 #include "NvInferRuntime.h"
 #include "NvOnnxParser.h"

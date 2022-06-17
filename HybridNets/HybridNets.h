@@ -9,8 +9,17 @@
 #ifndef HYBRIDNETS_TENSORRT_HYBRIDNETS_H
 #define HYBRIDNETS_TENSORRT_HYBRIDNETS_H
 
+#include "Trt.h"
 
 class HybridNets {
+private:
+    Trt *mNet = new Trt();
+public:
+    HybridNets();
+
+    virtual ~HybridNets();
+
+    void run();
 
 };
 

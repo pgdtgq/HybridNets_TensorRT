@@ -7,3 +7,15 @@
  */
 
 #include "HybridNets.h"
+
+HybridNets::HybridNets() {
+
+}
+
+HybridNets::~HybridNets() {
+
+}
+
+void HybridNets::run() {
+    mNet->BuildEngine("../models/hybridnets_512x640.onnx", "../models/hybridnets_512x640.trt");
+}

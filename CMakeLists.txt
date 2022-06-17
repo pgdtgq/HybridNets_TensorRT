@@ -39,6 +39,7 @@ find_package(Nvbio REQUIRED)
 find_package(Eigen REQUIRED)
 find_package(Flann REQUIRED)
 find_package(VTK REQUIRED)
+find_package(ZLIB REQUIRED)
 
 ############################# include directories #################################
 include_directories(${CUDA_INCLUDE_DIRS} BEFORE)
@@ -52,6 +53,8 @@ include_directories(${Eigen_INCLUDE_DIRS} BEFORE)
 include_directories(${VTK_INCLUDE_DIRS} BEFORE)
 include_directories(${Sophus_INCLUDE_DIRS} BEFORE)
 include_directories(${Nvbio_INCLUDE_DIRS} BEFORE)
+include_directories(${ZLIB_INCLUDE_DIRS})
+
 include_directories(.
         trt
         trt/plugin
@@ -76,14 +79,13 @@ file(GLOB src_file ${TRT} ${HYBRIDNETS})
 ######################### generate .so library ########################################
 set(DEPEND_LIBRARIES ${TensorRT_LIBRARIES} ${OpenCV_LIBRARIES} ${PCL_LIBRARIES}
         ${CUDA_LIBRARIES} ${Boost_LIBRARIES}
-        ${Logger_LIBRARIES} ${Openmpi_LIBRARIES})
-
+        ${Logger_LIBRARIES} ${Openmpi_LIBRARIES} ${Flann_LIBRARIES} ${ZLIB_LIBRARIES})
+link_libraries(${DEPEND_LIBRARIES})
 cuda_add_library(${LIBRATY_NAME} SHARED ${src_file})
-
 ########################### generate executable file #####################################
 file(GLOB_RECURSE SRC_PRJ_MAIN main/*.cpp)
 add_executable(HybridNets_TensorRT ${SRC_PRJ_MAIN})
-target_link_libraries(HybridNets_TensorRT ${LIBRATY_NAME})
+target_link_libraries(HybridNets_TensorRT ${LIBRATY_NAME} )
 
 message(STATUS "CMake configure finished.")
 
