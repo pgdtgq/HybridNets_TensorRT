@@ -1,12 +1,2 @@
-#include <iostream>
-#include <memory>
-#include "HybridNets.h"
+#include "test/hybridnet_test.hpp"
 
-using namespace std;
-
-int main() {
-    auto hybridnets = std::make_shared<HybridNets>();
-    hybridnets->run();
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
-}

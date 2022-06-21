@@ -61,7 +61,7 @@ include_directories(.
         trt/plugin/CuteSamplePlugin
         trt/plugin/CuteSampleDynamicExtPlugin
         HybridNets/
-        util/
+        base/
         )
 
 ############################ Specify src code directory #################################
@@ -83,7 +83,7 @@ set(DEPEND_LIBRARIES ${TensorRT_LIBRARIES} ${OpenCV_LIBRARIES} ${PCL_LIBRARIES}
 link_libraries(${DEPEND_LIBRARIES})
 cuda_add_library(${LIBRATY_NAME} SHARED ${src_file})
 ########################### generate executable file #####################################
-file(GLOB_RECURSE SRC_PRJ_MAIN main/*.cpp)
+file(GLOB_RECURSE SRC_PRJ_MAIN main/*.cpp test/*.hpp)
 add_executable(HybridNets_TensorRT ${SRC_PRJ_MAIN})
 target_link_libraries(HybridNets_TensorRT ${LIBRATY_NAME} )
 

@@ -10,6 +10,8 @@
 #define HYBRIDNETS_TENSORRT_HYBRIDNETS_H
 
 #include "Trt.h"
+#include "base/header.hpp"
+
 
 class HybridNets {
 private:
@@ -21,6 +23,7 @@ public:
 
     void run();
 
+    void print_info(int index);
 };
 
 

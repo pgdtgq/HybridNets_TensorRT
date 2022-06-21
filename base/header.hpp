@@ -1,17 +1,21 @@
 /**
  * @brief 
  * @author      xiaowenxuan
- * @date        2022/6/17 17:26      
+ * @date        2022/6/18 14:54      
  * @copyright   Copyright （C）2022 xiaowenxuan All rights reserved. 
  *              email:18710760109@163.com
  */
 
-#ifndef HYBRIDNETS_TENSORRT_UTIL_HPP
-#define HYBRIDNETS_TENSORRT_UTIL_HPP
+#ifndef HYBRIDNETS_TENSORRT_HEADER_HPP
+#define HYBRIDNETS_TENSORRT_HEADER_HPP
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <memory>
+#include "logger/LogDefine.h"
+
+using namespace std;
 
 template<typename... Args>
 std::string string_format(const std::string &format, Args... args) {
@@ -21,4 +25,4 @@ std::string string_format(const std::string &format, Args... args) {
     return std::string(buf.get(), buf.get() + size - 1);
 }
 
-#endif //HYBRIDNETS_TENSORRT_UTIL_HPP
+#endif //HYBRIDNETS_TENSORRT_HEADER_HPP

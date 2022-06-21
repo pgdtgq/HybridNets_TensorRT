@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <memory>
 
-#include "util/Util.hpp"
+#include "base/header.hpp"
 #include "NvInfer.h"
 #include "NvInferVersion.h"
 
