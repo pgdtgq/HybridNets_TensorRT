@@ -19,7 +19,13 @@ static const int map_[7][3] = {{0,   0,   0},
                                {128, 128, 0},
                                {128, 0,   128},
                                {0,   128, 0}};
-
+/**
+ * @brief 将输入图片做归一化，减均值除方差
+ * @param img 输入图片
+ * @param mean 均值
+ * @param std 方差
+ * @return float指针
+ */
 float *normalize(cv::Mat img, float mean[], float std[]) {
     float *data;
     data = static_cast<float *>(calloc(img.rows * img.cols * img.channels(), sizeof(float)));
@@ -35,6 +41,12 @@ float *normalize(cv::Mat img, float mean[], float std[]) {
     return data;
 }
 
+/**
+ * @brief 将指针转换为Mat格式
+ * @param prob float类型的指针
+ * @param out  转换后的Mat
+ * @return 转换后的Mat
+ */
 cv::Mat pointer2Mat(float *prob, cv::Mat out) {
     int rows = out.rows;
     int cols = out.cols;
@@ -49,6 +61,12 @@ cv::Mat pointer2Mat(float *prob, cv::Mat out) {
     return out;
 }
 
+/**
+ * @brief seg head部分的解码
+ * @param seg_mat 网络直接的输出结果
+ * @param decode 解码后的结果
+ * @return 解码后的结果
+ */
 cv::Mat seg2decode(cv::Mat seg_mat, cv::Mat decode) {
     for (int i = 0; i < seg_mat.rows; ++i) {
         cv::Vec<float, 3> *p1 = seg_mat.ptr<cv::Vec<float, 3>>(i);
@@ -73,6 +91,15 @@ cv::Mat seg2decode(cv::Mat seg_mat, cv::Mat decode) {
     return decode;
 }
 
+/**
+ * @brief det head的解码
+ * @param anchors 模型对应的anchors
+ * @param regression 模型对位置的回归
+ * @param classfications 每个回归框的score
+ * @param imageSize 图像的尺寸，也是模型输入的size
+ * @param scoreThreshold score的阈值，低于该阈值直接丢弃
+ * @return
+ */
 pair<vector<cv::Rect>, vector<float>>
 boxTransform(vector<float> anchors, vector<float> regression, vector<float> classfications, cv::Size imageSize,
              float scoreThreshold = 0.25) {
@@ -80,7 +107,7 @@ boxTransform(vector<float> anchors, vector<float> regression, vector<float> clas
     cv::Rect temp;
     float height = imageSize.height;
     float width = imageSize.width;
-    for (int i = 0; i < classfications.size(); i ++) {
+    for (int i = 0; i < classfications.size(); i++) {
         if (classfications[i] > scoreThreshold) {
             int index = i * 4;
             float y_centers_a = (anchors[index] + anchors[index + 2]) / 2;
