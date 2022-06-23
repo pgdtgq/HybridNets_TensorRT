@@ -11,11 +11,13 @@
 
 #include "Trt.h"
 #include "base/header.hpp"
-
+#include "base/process_image.hpp"
 
 class HybridNets {
 private:
     Trt *mNet = new Trt();
+    float Mean[3] = {0.485f, 0.456f, 0.406f};
+    float StdDev[3] = {0.229f, 0.224f, 0.225f};
 public:
     HybridNets();
 

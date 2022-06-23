@@ -15,6 +15,7 @@
 #include <memory>
 #include "logger/LogDefine.h"
 
+
 using namespace std;
 
 template<typename... Args>

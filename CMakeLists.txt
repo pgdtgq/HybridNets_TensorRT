@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.18)
 project(HybridNets_TensorRT)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -Wno-error=deprecated-declarations -Wno-deprecated-declarations -Wno-format-security")
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 ############################ set debug/release version #######################

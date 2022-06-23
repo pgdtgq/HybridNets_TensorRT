@@ -1,15 +1,12 @@
-/**
- * @brief 
- * @author      xiaowenxuan
- * @date        2022/6/17 16:15      
- * @copyright   Copyright （C）2022 xiaowenxuan All rights reserved. 
- *              email:18710760109@163.com
- */
-
 #include <bitset>
 #include "HybridNets.h"
 #include "cuda_runtime_api.h"
 #include "opencv2/opencv.hpp"
+#include "opencv2/dnn/dnn.hpp"
+
+/**
+ * @brief 构造函数
+ */
 HybridNets::HybridNets() {
 
 }
@@ -19,11 +16,9 @@ HybridNets::~HybridNets() {
 }
 
 void HybridNets::run() {
-//    mNet->BuildEngine("../models/hybridnets_512x640.onnx", "../models/hybridnets_512x640.trt");
-    SetDevice(3);
-
-//    mNet->AddDynamicShapeProfile("input",{1,3,128,128}, {1,3,256,256}, {1,3,512,640});
-    mNet->DeserializeEngine("../models/hybridnets_512x640.trt");
+    mNet->BuildEngine("../data/models/hybridnets-512-640.onnx", "../data/models/hybridnets-512-640.trt");
+//    SetDevice(3);
+//    mNet->DeserializeEngine("../data/models/hybridnets-512-640.trt");
     int input_size = mNet->GetNbInputBindings();
     int output_size = mNet->GetNbOutputBindings();
 
@@ -38,11 +33,64 @@ void HybridNets::run() {
         this->print_info(j);
     }
 
-    float *image = (float*)cv::imread("../data/images/1.jpg").data;
+    cv::Mat image = cv::imread("../data/images/1.jpg");
+    cv::Mat image_origin = image.clone();
+    cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
+    cv::resize(image, image, cv::Size(640, 512));
+    float *input = normalize(image, Mean, StdDev);
 
+    mNet->CopyFromHostToDevice(input, 0);
     mNet->Forward();
+
+    vector<float> out_seg(image.rows * image.cols * image.channels(), 0.0f);
+    vector<float> out_regression(61380 * 4, 0.0f);
+    vector<float> out_classification(61380, 0.0f);
+    vector<float> anchors(61380 * 4, 0.0f);
+    mNet->CopyFromDeviceToHost(out_seg, 1);
+    mNet->CopyFromDeviceToHost(out_regression, 2);
+    mNet->CopyFromDeviceToHost(out_classification, 3);
+    mNet->CopyFromDeviceToHost(anchors, 4);
+
+    cv::Mat seg_mat;
+    cv::Mat seg_decode;
+    seg_mat.create(image.rows, image.cols, CV_32FC(3));
+    seg_decode.create(image.rows, image.cols, CV_8UC3);
+
+
+    //处理seg
+    seg_mat = pointer2Mat(out_seg.data(), seg_mat);
+    seg_decode = seg2decode(seg_mat, seg_decode);
+
+
+    //处理detect
+    pair<vector<cv::Rect>, vector<float>> boxs_scores = boxTransform(anchors, out_regression, out_classification,
+                                                                     cv::Size(640, 512));
+    vector<int> nms_result;
+    cv::dnn::NMSBoxes(boxs_scores.first, boxs_scores.second, 0.25, 0.3, nms_result);
+
+    //visualize
+    cv::resize(seg_decode, seg_decode, cv::Size(image_origin.cols, image_origin.rows));
+    cv::imwrite("./1_seg.jpg", seg_decode);
+
+    for (int k = 0; k < nms_result.size(); ++k) {
+        cv::rectangle(image, boxs_scores.first[nms_result[k]], cv::Scalar(239, 239, 239));
+    }
+    cv::resize(image, image, cv::Size(image_origin.cols, image_origin.rows));
+    cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
+    cv::imwrite("./1_det.jpg", image);
+
+//    cv::namedWindow("origin");
+//    cv::imshow("origin", image_origin);
+//    cv::namedWindow("seg_decode");
+//    cv::imshow("seg_decode", seg_decode);
+//    if(cv::waitKey(10000000)==27) return;
+    return;
 }
 
+/**
+ * @brief 根据索引打印模型信息，包括名字，维度，大小，数据类型
+ * @param index 索引
+ */
 void HybridNets::print_info(int index) {
     std::string name;
     nvinfer1::DataType dataType;

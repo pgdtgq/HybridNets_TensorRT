@@ -163,6 +163,8 @@ public:
      */
     void CopyFromHostToDevice(const std::vector<float>& input, int bindIndex,const cudaStream_t& stream = 0);
 
+    void CopyFromHostToDevice(const float* input, int bindIndex,const cudaStream_t& stream = 0);
+
     /**
      * Copy input from device to host
      * @bindIndex binding data index, you can see this in BuildEngine log output.
