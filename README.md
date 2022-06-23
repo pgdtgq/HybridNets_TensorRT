@@ -14,7 +14,7 @@
 ├── bin								二进制文件目录
 │   ├── 1_det.jpg
 │   ├── 1_seg.jpg
-│   ├── HybridNets_TensorRT
+│   ├── HybridNets_TensorRT 
 │   ├── libhybridnetsd.so
 │   └── log
 ├── cmake							cmake module目录
