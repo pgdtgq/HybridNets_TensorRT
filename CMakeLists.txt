@@ -30,31 +30,31 @@ set(CUDA_TOOLKIT_ROOT_DIR /usr/local/${CUDA-VERSION})
 ############################# find library #################################
 find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(PCL REQUIRED)
+#find_package(PCL REQUIRED)
 find_package(TensorRT REQUIRED)
 find_package(Logger REQUIRED)
-find_package(Flann REQUIRED)
-find_package(Openmpi REQUIRED)
+#find_package(Flann REQUIRED)
+#find_package(Openmpi REQUIRED)
 find_package(Boost REQUIRED)
-find_package(Sophus REQUIRED)
-find_package(Nvbio REQUIRED)
-find_package(Eigen REQUIRED)
-find_package(Flann REQUIRED)
-find_package(VTK REQUIRED)
+#find_package(Sophus REQUIRED)
+#find_package(Nvbio REQUIRED)
+#find_package(Eigen REQUIRED)
+#find_package(Flann REQUIRED)
+#find_package(VTK REQUIRED)
 find_package(ZLIB REQUIRED)
 
 ############################# include directories #################################
 include_directories(${CUDA_INCLUDE_DIRS} BEFORE)
 include_directories(${OpenCV_INCLUDE_DIRS} BEFORE)
-include_directories(${PCL_INCLUDE_DIRS} BEFORE)
+#include_directories(${PCL_INCLUDE_DIRS} BEFORE)
 include_directories(${TensorRT_INCLUDE_DIRS} BEFORE)
 include_directories(${Logger_INCLUDE_DIRS} BEFORE)
-include_directories(${Flann_INCLUDE_DIRS} BEFORE)
+#include_directories(${Flann_INCLUDE_DIRS} BEFORE)
 include_directories(${Boost_INCLUDE_DIRS} BEFORE)
-include_directories(${Eigen_INCLUDE_DIRS} BEFORE)
-include_directories(${VTK_INCLUDE_DIRS} BEFORE)
-include_directories(${Sophus_INCLUDE_DIRS} BEFORE)
-include_directories(${Nvbio_INCLUDE_DIRS} BEFORE)
+#include_directories(${Eigen_INCLUDE_DIRS} BEFORE)
+#include_directories(${VTK_INCLUDE_DIRS} BEFORE)
+#include_directories(${Sophus_INCLUDE_DIRS} BEFORE)
+#include_directories(${Nvbio_INCLUDE_DIRS} BEFORE)
 include_directories(${ZLIB_INCLUDE_DIRS})
 
 include_directories(.
@@ -79,9 +79,9 @@ file(GLOB_RECURSE HYBRIDNETS
 file(GLOB src_file ${TRT} ${HYBRIDNETS})
 
 ######################### generate .so library ########################################
-set(DEPEND_LIBRARIES ${TensorRT_LIBRARIES} ${OpenCV_LIBRARIES} ${PCL_LIBRARIES}
+set(DEPEND_LIBRARIES ${TensorRT_LIBRARIES} ${OpenCV_LIBRARIES}
         ${CUDA_LIBRARIES} ${Boost_LIBRARIES}
-        ${Logger_LIBRARIES} ${Openmpi_LIBRARIES} ${Flann_LIBRARIES} ${ZLIB_LIBRARIES})
+        ${Logger_LIBRARIES}  ${ZLIB_LIBRARIES})
 link_libraries(${DEPEND_LIBRARIES})
 cuda_add_library(${LIBRATY_NAME} SHARED ${src_file})
 ########################### generate executable file #####################################
