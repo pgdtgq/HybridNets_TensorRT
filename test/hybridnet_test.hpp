@@ -21,6 +21,8 @@ BOOST_AUTO_TEST_SUITE(hybridnet_suite)
         hybridnets->setInput(image);
         hybridnets->forward();
         hybridnets->saveResult("./result", true);
+        fusionSeg(hybridnets->det_origin, hybridnets->seg_origin);
+        imwrite("./fusion.jpg", hybridnets->det_origin);
 
     }
 
@@ -116,8 +118,7 @@ BOOST_AUTO_TEST_SUITE(hybridnet_suite)
         std::cout << "hybridnets enqueue done, time: " << (duration / epoch) << " ms." << std::endl;
     }
 
-    BOOST_AUTO_TEST_CASE( fusion_case )
-    {
+    BOOST_AUTO_TEST_CASE(fusion_case) {
         Mat image1 = cv::imread("../data/images/1.jpg");
         Mat image2 = cv::imread("../data/images/2.jpg");
         fusionSeg(image1, image2);

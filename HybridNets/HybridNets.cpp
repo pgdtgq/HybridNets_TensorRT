@@ -47,7 +47,7 @@ void HybridNets::saveResult(string fileName="./result", bool save = false) {
     Mat det_temp;
     cv::cvtColor(det_mat, det_temp, cv::COLOR_RGB2BGR);
     for (int k = 0; k < box_scores_afternms.first.size(); ++k) {
-        cv::rectangle(det_temp, box_scores_afternms.first[k], cv::Scalar(0, 0, 255));
+        cv::rectangle(det_temp, box_scores_afternms.first[k], cv::Scalar(255, 0, 0));
     }
     cv::resize(det_temp, det_temp, cv::Size(image_origin.cols, image_origin.rows));
     det_origin = det_temp;
