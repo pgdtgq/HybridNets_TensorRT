@@ -13,12 +13,12 @@
 #include "opencv2/dnn/dnn.hpp"
 
 static const int map_[7][3] = {{0,   0,   0},
-                               {128, 0,   0},
-                               {0,   128, 0},
-                               {0,   0,   128},
-                               {128, 128, 0},
-                               {128, 0,   128},
-                               {0,   128, 0}};
+                               {255, 0,   0},
+                               {0,   255, 0},
+                               {0,   0,   255},
+                               {255, 255, 0},
+                               {255, 0,   255},
+                               {0,   255, 0}};
 /**
  * @brief 将输入图片做归一化，减均值除方差
  * @param img 输入图片
@@ -26,7 +26,7 @@ static const int map_[7][3] = {{0,   0,   0},
  * @param std 方差
  * @return float指针
  */
-float *normalize(cv::Mat img, float mean[], float std[]) {
+float *normalizeMat(cv::Mat img, float mean[], float std[]) {
     float *data;
     data = static_cast<float *>(calloc(img.rows * img.cols * img.channels(), sizeof(float)));
 
@@ -140,6 +140,23 @@ boxTransform(vector<float> anchors, vector<float> regression, vector<float> clas
         }
     }
     return result;
+}
+
+void fusionSeg(cv::Mat &src, cv::Mat &seg){
+    for (int i = 0; i < seg.rows; ++i) {
+        cv::Vec3b *s1 = src.ptr<cv::Vec3b>(i);
+        cv::Vec3b *p1 = seg.ptr<cv::Vec3b>(i);
+        for (int j = 0; j < seg.cols; ++j) {
+            if (p1[j][0] == 0 && p1[j][1] == 0 && p1[j][2] == 0) {
+                continue;
+            } else {
+                s1[j][0] = (s1[j][0]+ p1[j][0]) / 2;
+                s1[j][1] = (s1[j][1]+ p1[j][1]) / 2;
+                s1[j][2] = (s1[j][2]+ p1[j][2]) / 2;
+            }
+        }
+    }
+    return;
 }
 
 
